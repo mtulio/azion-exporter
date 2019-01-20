@@ -189,8 +189,7 @@ func (c *Client) tokenRenew() error {
 	c.Token.ExpirationDate = t
 	c.Token.Token = tokenResp.Token
 
-	fmt.Println("token value: ", c.Token.Token)
-
+	fmt.Println("Success getting an token: ", c.Token.Token)
 	return nil
 }
 
