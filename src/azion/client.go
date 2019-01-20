@@ -48,7 +48,7 @@ type Client struct {
 	UserAgent string
 
 	// Services used to manipulate API entities.
-	Analytics *AnalyticsService
+	Analytics *AnalyticsSvc
 	// CloudSecurity   *CloudSecurity
 	// ContentDelivery *ContentDelivery
 	// RealTimePurge   *RealTimePurge
@@ -88,7 +88,10 @@ func NewClientWithBaseURL(baseURL *url.URL, email, password string) *Client {
 		UserAgent: userAgent,
 	}
 
-	c.Analytics = &AnalyticsService{client: c}
+	c.Analytics = &AnalyticsSvc{
+		client:  c,
+		BaseURI: "/analytics",
+	}
 	// c.CloudSecurity = &CloudSecurityService{client: c}
 	// c.ContentDelivery = &ContentDeliveryService{client: c}
 	// c.RealTimePurge = &RealTimePurgeService{client: c}
@@ -115,7 +118,6 @@ func timeParser(strDate string) (time.Time, error) {
 	hour, _ := strconv.Atoi(hmsn[0])
 	min, _ := strconv.Atoi(hmsn[1])
 
-	fmt.Println(year, month, day, hour, min, 0, 0)
 	t := time.Date(year, time.Month(month), day, hour, min, 0, 0, time.UTC)
 
 	return t, nil
@@ -158,12 +160,6 @@ func (c *Client) tokenRequest(v interface{}) error {
 //
 // API doc: https://www.azion.com.br/developers/api-v2/authentication/
 func (c *Client) tokenRenew() error {
-
-	if c == nil {
-		fmt.Println("> c is null")
-	} else {
-		fmt.Println("> c is not null")
-	}
 
 	type reqToken struct {
 		Token     string `json:"token"`
@@ -298,10 +294,6 @@ type ErrorResponseMessages struct {
 	Params  map[string]interface{} `json:"params,omitempty"`
 	Request []string               `json:"request,omitempty"`
 	System  []string               `json:"system,omitempty"`
-}
-
-type ConditionParamError struct {
-	Condition map[string][]string `json:"conditions,omitempty"`
 }
 
 // CheckResponse checks the API response for errors; and returns them if
