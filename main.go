@@ -22,8 +22,8 @@ func usage() {
 }
 
 func init() {
-	fEmail := flag.String("azion.email", "", "API email address to get Authorization token")
-	fPassword := flag.String("azion.password", "", "API password to get Authorization token")
+	fEmail = flag.String("azion.email", "", "API email address to get Authorization token")
+	fPassword = flag.String("azion.password", "", "API password to get Authorization token")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -34,13 +34,15 @@ func init() {
 	if *fPassword == "" {
 		*fPassword = os.Getenv("AZION_PASSWORD")
 	}
+
 }
 
 func main() {
 	log.Infoln("Starting exporter ")
 	c := azion.NewClient(*fEmail, *fPassword)
-	_, err := c.Analytics.GetMatadata()
+	m, err := c.Analytics.GetMatadata()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(m)
 }
