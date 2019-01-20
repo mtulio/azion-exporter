@@ -40,16 +40,7 @@ func init() {
 func main() {
 	log.Infoln("Starting exporter ")
 	c := azion.NewClient(*fEmail, *fPassword)
-	meta, err := c.Analytics.GetMatadata()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(meta)
 
-	// var metric *azion.Analytics.MetricResponse
-	metric, err2 := c.Analytics.GetCDRequestsTotal()
-	if err2 != nil {
-		panic(err2)
-	}
-	fmt.Println(metric)
+	sampleGetMetadata(c)
+	sampleGetMetricProdCDDimension(c)
 }
