@@ -56,10 +56,10 @@ type Client struct {
 
 // clientToken manages authorization token in the API
 type clientToken struct {
-	Token       string `json:"token"`
-	CreatedAt   string `json:"created_at"`
-	ExpiresAt   string `json:"expires_at"`
-	ExpiresDate time.Time
+	Token          string `json:"token"`
+	CreatedAt      string `json:"created_at"`
+	ExpiresAt      string `json:"expires_at"`
+	ExpirationDate time.Time
 }
 
 // NewClient returns a new Librato API client bound to the public Librato API.
@@ -159,12 +159,19 @@ func (c *Client) tokenRequest(v interface{}) error {
 // API doc: https://www.azion.com.br/developers/api-v2/authentication/
 func (c *Client) tokenRenew() error {
 
-	type clientToken struct {
+	if c == nil {
+		fmt.Println("> c is null")
+	} else {
+		fmt.Println("> c is not null")
+	}
+
+	type reqToken struct {
 		Token     string `json:"token"`
 		CreatedAt string `json:"created_at"`
 		ExpiresAt string `json:"expires_at"`
 	}
-	tokenResp := new(clientToken)
+	tokenResp := new(reqToken)
+
 	err := c.tokenRequest(tokenResp)
 	if err != nil {
 		return err
@@ -175,8 +182,14 @@ func (c *Client) tokenRenew() error {
 		return err
 	}
 
-	c.Token.ExpiresDate = t
+	c.Token = new(clientToken)
+	if c.Token == nil {
+		panic("Unable to allocate Token object")
+	}
+	c.Token.ExpirationDate = t
 	c.Token.Token = tokenResp.Token
+
+	fmt.Println("token value: ", c.Token.Token)
 
 	return nil
 }
@@ -189,7 +202,7 @@ func (c *Client) tokenValidation() error {
 		return c.tokenRenew()
 	}
 	// check if token is not valid
-	tExpired := time.Now().After(c.Token.ExpiresDate)
+	tExpired := time.Now().After(c.Token.ExpirationDate)
 	if tExpired {
 		return c.tokenRenew()
 	}
