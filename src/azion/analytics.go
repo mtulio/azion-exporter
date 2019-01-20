@@ -19,7 +19,7 @@ type AnalyticsMetric struct {
 }
 
 // AnalyticsMetricDim represents a Azion Analytics Metric dimensions.
-type AnalyticsMetricDim map[string][]map[string]string
+type AnalyticsMetricDim map[string][]string
 
 // GetMatadata returns the metadata path values.
 //
@@ -30,14 +30,12 @@ func (a *AnalyticsService) GetMatadata() (*AnalyticsMetricDim, error) {
 		return nil, err
 	}
 
-	var dimensionsResponse struct {
-		Dimensions AnalyticsMetricDim
-	}
+	dimensionsResponse := new(AnalyticsMetricDim)
 
 	_, err = a.client.Do(req, &dimensionsResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dimensionsResponse.Dimensions, nil
+	return dimensionsResponse, nil
 }
