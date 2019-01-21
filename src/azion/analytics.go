@@ -46,8 +46,8 @@ func (a *AnalyticsSvc) GetMatadata() (*AnalyticsMetricDim, error) {
 	return dimensionsResponse, nil
 }
 
-// GetMetricDimension return the metric with dimensions
-func (a *AnalyticsSvc) GetMetricDimension(pid, mc, dim string, qArgs ...string) (*MetricResp, error) {
+// getMetricDimension return the metric with dimensions
+func (a *AnalyticsSvc) getMetricDimension(pid, mc, dim string, qArgs ...string) (*MetricResp, error) {
 	url := a.BaseURI + "/products/" + pid + "/aggregate/metrics/" + mc + "/dimensions/" + dim + "?"
 	argCnt := 0
 	for _, value := range qArgs {
@@ -101,7 +101,7 @@ func (a *AnalyticsSvc) getProductID(product string) string {
 // CD: Content Delivery (1441740010)
 //
 
-// GetMetricProdCDDimension return the metric with dimensions for product Content Delivery
-func (a *AnalyticsSvc) GetMetricProdCDDimension(metric, dimension string, qArgs ...string) (*MetricResp, error) {
-	return a.GetMetricDimension(a.getProductID("ContentDelivery"), metric, dimension, qArgs...)
+// GetMetricDimensionProdCD return the metric with dimensions for product Content Delivery
+func (a *AnalyticsSvc) GetMetricDimensionProdCD(metric, dimension string, qArgs ...string) (*MetricResp, error) {
+	return a.getMetricDimension(a.getProductID("ContentDelivery"), metric, dimension, qArgs...)
 }
