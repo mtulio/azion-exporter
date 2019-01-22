@@ -25,7 +25,8 @@ type AnalyticsMetricDim map[string][]string
 // MetricResp is a metric response payload returned by Azion API.
 //
 // Azion API docs: https://www.azion.com.br/developers/api-v2/analytics/
-type MetricResp map[string]map[string]map[string]map[string][][]interface{}
+// type MetricResp map[string]map[string]map[string]map[string][][]interface{}
+type MetricResp interface{}
 
 // GetMatadata returns the metadata path values.
 //

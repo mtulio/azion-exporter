@@ -1,7 +1,7 @@
 package collector
 
 import (
-	"fmt"
+	"encoding/json"
 	"time"
 
 	"github.com/apex/log"
@@ -44,7 +44,6 @@ func (ca *Analytics) Update(ch chan<- prometheus.Metric) error {
 	done := make(chan bool)
 	for mID := range ca.Metrics {
 		go func(m *Metric, ch chan<- prometheus.Metric) {
-			fmt.Println(m.Name)
 			ch <- prometheus.MustNewConstMetric(
 				m.Prom,
 				prometheus.GaugeValue,
@@ -108,12 +107,32 @@ func (ca *Analytics) InitCollectorsUpdater() {
 func (ca *Analytics) collectorRequestsTotal() func(m *Metric) error {
 
 	return func(m *Metric) error {
+		type mIndexing struct {
+			Products struct {
+				Num1441740010 struct {
+					Requests struct {
+						Total [][]interface{} `json:"total"`
+					} `json:"requests"`
+				} `json:"1441740010"`
+			} `json:"products"`
+		}
+		var mI mIndexing
+
 		mData, err := ca.AzionClient.Analytics.GetMetricDimensionProdCD("requests", "total", "date_from=last-hour")
 		if err != nil {
 			log.Info("Error getting metrics. Ignoring")
 			return err
 		}
-		fmt.Println(mData)
+		b, err := json.Marshal(mData)
+		if err != nil {
+			return err
+		}
+		// Asserting to ignore last datapoint that has "uncomplete" data.
+		// Gathering '2 min ago' datapoint.
+		// Parsing metric {"products":{"1441740010":{"requests":{"total":[[T,V]]}}}}
+		json.Unmarshal(b, &mI)
+		pos2mAgo := len(mI.Products.Num1441740010.Requests.Total) - 2
+		m.Value = (mI.Products.Num1441740010.Requests.Total[pos2mAgo][1]).(float64)
 		return nil
 	}
 }
