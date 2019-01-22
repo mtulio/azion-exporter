@@ -2,6 +2,7 @@ package collector
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/apex/log"
@@ -63,22 +64,24 @@ func (ca *Analytics) Update(ch chan<- prometheus.Metric) error {
 func (ca *Analytics) InitMetrics(msEnabled ...string) error {
 
 	for _, mName := range msEnabled {
+		m := Metric{}
 		switch mName {
 		case "cd_requests_total":
 			{
-				m := Metric{
-					Name:        prometheus.BuildFQName(namespace, "cd", "requests_total"),
-					Description: "Azion Analytics Content Delivery Requests Total",
-				}
-				m.Prom = prometheus.NewDesc(
-					m.Name,
-					m.Description,
-					m.Labels, nil,
-				)
-				m.fCollector = ca.collectorRequestsTotal()
-				ca.Metrics = append(ca.Metrics, m)
+				m.Name = prometheus.BuildFQName(namespace, "cd", "requests_total")
+				m.Description = "Azion Analytics Content Delivery Requests Total"
 			}
+		default:
+			fmt.Println("Metric init Error, metric definition found: ", mName)
+			continue
 		}
+		m.Prom = prometheus.NewDesc(
+			m.Name,
+			m.Description,
+			m.Labels, nil,
+		)
+		m.fCollector = ca.collectorRequestsTotal()
+		ca.Metrics = append(ca.Metrics, m)
 	}
 	return nil
 }
@@ -123,16 +126,29 @@ func (ca *Analytics) collectorRequestsTotal() func(m *Metric) error {
 			log.Info("Error getting metrics. Ignoring")
 			return err
 		}
+
 		b, err := json.Marshal(mData)
 		if err != nil {
 			return err
 		}
 		// Asserting to ignore last datapoint that has "uncomplete" data.
 		// Gathering '2 min ago' datapoint.
-		// Parsing metric {"products":{"1441740010":{"requests":{"total":[[T,V]]}}}}
+		// Casting metric payload {"products":{"1441740010":{"requests":{"total":[[T,V]]}}}}
 		json.Unmarshal(b, &mI)
-		pos2mAgo := len(mI.Products.Num1441740010.Requests.Total) - 2
-		m.Value = (mI.Products.Num1441740010.Requests.Total[pos2mAgo][1]).(float64)
+
+		// BUG Report: Azion Analytics API has delays to proccess latest datapoints,
+		// the last one is always lower, sometimes more than it,
+		// to prevent empty metrics, we will follow the strategy:
+		// - we consider >=2min datapoint an 'safe value'; if it's <=0, then
+		// - get the latest (>=2min) data point greater than 0;
+		// The value will be: >= 2 min ago && > 0.
+		posLatestDP := len(mI.Products.Num1441740010.Requests.Total) - 2
+		for i := posLatestDP; i >= 0; i-- {
+			m.Value = (mI.Products.Num1441740010.Requests.Total[i][1]).(float64)
+			if m.Value > 0 {
+				break
+			}
+		}
 		return nil
 	}
 }
