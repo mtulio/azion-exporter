@@ -2,7 +2,9 @@ package collector
 
 import (
 	"sync"
+	"time"
 
+	"github.com/apex/log"
 	"github.com/mtulio/azion-exporter/src/azion"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -42,11 +44,11 @@ var (
 )
 
 // NewCollectorMaster creates a new NodeCollector.
-func NewCollectorMaster(azionCli *azion.Client) (*CollectorMaster, error) {
+func NewCollectorMaster(azionCli *azion.Client, metrics ...string) (*CollectorMaster, error) {
 	var err error
 	err = nil
 	collectors := make(map[string]Collector)
-	collectors["analytics"], err = NewCollectorAnalytics(azionCli)
+	collectors["analytics"], err = NewCollectorAnalytics(azionCli, metrics...)
 	if err != nil {
 		panic(err)
 	}
@@ -72,9 +74,27 @@ func (cm *CollectorMaster) Collect(ch chan<- prometheus.Metric) {
 	wg.Add(len(cm.Collectors))
 	for name, c := range cm.Collectors {
 		go func(name string, c Collector) {
-			// execute(name, c, ch)
+			execute(name, c, ch)
 			wg.Done()
 		}(name, c)
 	}
 	wg.Wait()
+}
+
+// execute calls Update() function on subsystem to gather metrics
+func execute(name string, c Collector, ch chan<- prometheus.Metric) {
+	begin := time.Now()
+	err := c.Update(ch)
+	duration := time.Since(begin)
+	var success float64
+
+	if err != nil {
+		log.Errorf("ERROR: %s collector failed after %fs: %s", name, duration.Seconds(), err)
+		success = 0
+	} else {
+		log.Debugf("OK: %s collector succeeded after %fs.", name, duration.Seconds())
+		success = 1
+	}
+	ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, duration.Seconds(), name)
+	ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, success, name)
 }
