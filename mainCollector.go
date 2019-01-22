@@ -13,7 +13,7 @@ func initPromCollector() error {
 		cfg.prom = new(globalProm)
 	}
 
-	cfg.prom.Collector, err = collector.NewCollectorMaster(cfg.azionClient)
+	cfg.prom.Collector, err = collector.NewCollectorMaster(cfg.azionClient, cfg.metricsName...)
 	if err != nil {
 		log.Warnln("Init Prom: Couldn't create collector: ", err)
 		return err

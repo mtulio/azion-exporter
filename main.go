@@ -26,6 +26,7 @@ type configParams struct {
 	metricsPath string
 	prom        *globalProm
 	azionClient *azion.Client
+	metricsName []string
 }
 
 const (
@@ -61,10 +62,12 @@ func init() {
 		*cfg.azionPass = os.Getenv("AZION_PASSWORD")
 	}
 
+	// List of metrics to retrieve
+	cfg.metricsName = append(cfg.metricsName, "cd_requests_total")
+
 	cfg.azionClient = azion.NewClient(*cfg.azionEmail, *cfg.azionPass)
 
 	initPromCollector()
-
 	// Samples
 	// sampleGetMetadata(c)
 	// sampleGetMetricProdCDDimension(c)
@@ -88,8 +91,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.Infoln("Starting exporter ")
 
-	//This section will start the HTTP server and expose
-	//any metrics on the /metrics endpoint.
+	// This section will start the HTTP server and expose
+	// any metrics on the /metrics endpoint.
 	http.HandleFunc(cfg.metricsPath, handler)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
@@ -103,4 +106,5 @@ func main() {
 
 	log.Info("Beginning to serve on port " + cfg.apiListen)
 	log.Fatal(http.ListenAndServe(cfg.apiListen, nil))
+
 }
