@@ -64,6 +64,10 @@ func init() {
 
 	// List of metrics to retrieve
 	cfg.metricsName = append(cfg.metricsName, "cd_requests_total")
+	cfg.metricsName = append(cfg.metricsName, "cd_status_code_5xx")
+	cfg.metricsName = append(cfg.metricsName, "cd_status_code_500")
+	cfg.metricsName = append(cfg.metricsName, "cd_status_code_503")
+	cfg.metricsName = append(cfg.metricsName, "cd_status_code_503")
 
 	cfg.azionClient = azion.NewClient(*cfg.azionEmail, *cfg.azionPass)
 
