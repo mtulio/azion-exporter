@@ -8,3 +8,4 @@
 - Unit tests
 - Improve Documentation
 - External Library
+- Improve CLI options to dynamic enable metrics
