@@ -3,6 +3,7 @@ package collector
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sync"
 	"time"
 
@@ -82,48 +83,169 @@ func (ca *Analytics) InitMetrics(msEnabled ...string) error {
 
 	for _, mName := range msEnabled {
 		m := Metric{}
-		switch mName {
-		case "cd_requests_total":
+		reStatusCode := regexp.MustCompile(`^cd_status_code_*`)
+		reReq := regexp.MustCompile(`^cd_requests_*`)
+		reBW := regexp.MustCompile(`^cd_bandwidth_*`)
+		reDT := regexp.MustCompile(`^cd_data_transferred_*`)
+
+		switch {
+		case reReq.MatchString(mName):
 			{
-				m.Name = prometheus.BuildFQName(namespace, "cd", "requests_total")
-				m.Description = "Azion Analytics Content Delivery Requests Total"
-				m.fCollector = ca.collectorRequestsTotal()
+				m.Name = prometheus.BuildFQName(namespace, "cd", "requests_count")
+				m.Description = "Azion Analytics Content Delivery Requests Count"
+				m.Labels = []string{"type"}
+				switch mName {
+				case "cd_requests_total":
+					{
+						m.fCollector = ca.collectorWrapper("requests", "total")
+						m.LabelsValue = []string{"total"}
+					}
+				case "cd_requests_saved":
+					{
+						m.fCollector = ca.collectorWrapper("requests", "saved")
+						m.LabelsValue = []string{"saved"}
+					}
+				case "cd_requests_missed":
+					{
+						m.fCollector = ca.collectorWrapper("requests", "missed")
+						m.LabelsValue = []string{"missed"}
+					}
+				}
 			}
-		case "cd_status_code_5xx":
+		case reBW.MatchString(mName):
 			{
-				m.Name = prometheus.BuildFQName(namespace, "cd", "status_code_total_5xx")
+				m.Name = prometheus.BuildFQName(namespace, "cd", "bandwidth_gb")
+				m.Description = "Azion Analytics Content Delivery Bandwidth Count"
+				m.Labels = []string{"type"}
+				switch mName {
+				case "cd_bandwidth_total":
+					{
+						m.fCollector = ca.collectorWrapper("bandwidth", "total")
+						m.LabelsValue = []string{"total"}
+					}
+				case "cd_bandwidth_saved":
+					{
+						m.fCollector = ca.collectorWrapper("bandwidth", "saved")
+						m.LabelsValue = []string{"saved"}
+					}
+				case "cd_bandwidth_missed":
+					{
+						m.fCollector = ca.collectorWrapper("bandwidth", "missed")
+						m.LabelsValue = []string{"missed"}
+					}
+				}
+			}
+		case reDT.MatchString(mName):
+			{
+				m.Name = prometheus.BuildFQName(namespace, "cd", "data_transferred_mb")
+				m.Description = "Azion Analytics Content Delivery Data Transferred in MB"
+				m.Labels = []string{"type"}
+				switch mName {
+				case "cd_data_transferred_total":
+					{
+						m.fCollector = ca.collectorWrapper("data_transferred", "total")
+						m.LabelsValue = []string{"total"}
+					}
+				case "cd_data_transferred_saved":
+					{
+						m.fCollector = ca.collectorWrapper("bandwidth", "saved")
+						m.LabelsValue = []string{"saved"}
+					}
+				case "cd_data_transferred_missed":
+					{
+						m.fCollector = ca.collectorWrapper("data_transferred", "missed")
+						m.LabelsValue = []string{"missed"}
+					}
+				}
+			}
+		case reStatusCode.MatchString(mName):
+			{
+				m.Name = prometheus.BuildFQName(namespace, "cd", "status_code_total")
 				m.Description = "Azion Analytics Content Delivery Status Code 5xx Total"
-				m.fCollector = ca.collectorStatusCode5xx()
-				// m.Labels = []string{"code"}
-				// m.LabelsValue = []string{"5xx"}
-				// m.LabelsConst = prometheus.Labels{"code": "5xx"}
-			}
-		case "cd_status_code_500":
-			{
-				m.Name = prometheus.BuildFQName(namespace, "cd", "status_code_total_500")
-				m.Description = "Azion Analytics Content Delivery Status Code 500 Total"
-				m.fCollector = ca.collectorStatusCode500()
-				// m.Labels = []string{"code"}
-				// m.LabelsValue = []string{"500"}
-				// m.LabelsConst = prometheus.Labels{"code": "500"}
-			}
-		case "cd_status_code_502":
-			{
-				m.Name = prometheus.BuildFQName(namespace, "cd", "status_code_total_502")
-				m.Description = "Azion Analytics Content Delivery Status Code 502 Total"
-				m.fCollector = ca.collectorStatusCode502()
-				// m.Labels = []string{"code"}
-				// m.LabelsValue = []string{"502"}
-				// m.LabelsConst = prometheus.Labels{"code": "502"}
-			}
-		case "cd_status_code_503":
-			{
-				m.Name = prometheus.BuildFQName(namespace, "cd", "status_code_total_503")
-				m.Description = "Azion Analytics Content Delivery Status Code 503 Total"
-				m.fCollector = ca.collectorStatusCode503()
-				// m.Labels = []string{"code"}
-				// m.LabelsValue = []string{"503"}
-				// m.LabelsConst = prometheus.Labels{"code": "500"}
+				m.Labels = []string{"code"}
+				switch mName {
+				case "cd_status_code_2xx":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "2xx")
+						m.LabelsValue = []string{"2xx"}
+					}
+				case "cd_status_code_200":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "200")
+						m.LabelsValue = []string{"200"}
+					}
+				case "cd_status_code_204":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "204")
+						m.LabelsValue = []string{"204"}
+					}
+				case "cd_status_code_206":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "206")
+						m.LabelsValue = []string{"206"}
+					}
+				case "cd_status_code_3xx":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "3xx")
+						m.LabelsValue = []string{"3xx"}
+					}
+				case "cd_status_code_301":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "301")
+						m.LabelsValue = []string{"301"}
+					}
+				case "cd_status_code_302":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "302")
+						m.LabelsValue = []string{"302"}
+					}
+				case "cd_status_code_304":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "304")
+						m.LabelsValue = []string{"304"}
+					}
+				case "cd_status_code_4xx":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "4xx")
+						m.LabelsValue = []string{"4xx"}
+					}
+				case "cd_status_code_400":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "400")
+						m.LabelsValue = []string{"400"}
+					}
+				case "cd_status_code_403":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "403")
+						m.LabelsValue = []string{"403"}
+					}
+				case "cd_status_code_404":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "404")
+						m.LabelsValue = []string{"404"}
+					}
+				case "cd_status_code_5xx":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "5xx")
+						m.LabelsValue = []string{"5xx"}
+					}
+				case "cd_status_code_500":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "500")
+						m.LabelsValue = []string{"500"}
+					}
+				case "cd_status_code_502":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "502")
+						m.LabelsValue = []string{"502"}
+					}
+				case "cd_status_code_503":
+					{
+						m.fCollector = ca.collectorWrapper("status_code", "503")
+						m.LabelsValue = []string{"503"}
+					}
+
+				}
 			}
 		default:
 			fmt.Println("Metric init Error, metric definition found: ", mName)
@@ -176,51 +298,9 @@ func (ca *Analytics) metricAssertion(datapoints [][]interface{}) (float64, error
 
 }
 
-// collectorRequestsTotal gather metrics from:
-// - Product: Contend Delivery
-// - Metric: requests
-// - Dimension: total
-// - Time: last-hour
-func (ca *Analytics) collectorRequestsTotal() func(m *Metric) error {
+func (ca *Analytics) collectorMetric(n, d string, args ...string) ([]byte, error) {
 
-	return func(m *Metric) error {
-
-		var mI mIndexing
-		mData, err := ca.AzionClient.Analytics.GetMetricDimensionProdCD("requests", "total", "date_from=last-hour")
-		if err != nil {
-			log.Info("Error getting metrics. Ignoring")
-			return err
-		}
-
-		b, err := json.Marshal(mData)
-		if err != nil {
-			return err
-		}
-		// Asserting to ignore last datapoint that has "uncomplete" data.
-		// Gathering '2 min ago' datapoint.
-		// Casting metric payload {"products":{"1441740010":{"requests":{"total":[[T,V]]}}}}
-		json.Unmarshal(b, &mI)
-
-		// BUG Report: Azion Analytics API has delays to proccess latest datapoints,
-		// the last one is always lower, sometimes more than it,
-		// to prevent empty metrics, we will follow the strategy:
-		// - we consider >=2min datapoint an 'safe value'; if it's <=0, then
-		// - get the latest (>=2min) data point greater than 0;
-		// The value will be: >= 2 min ago && > 0.
-		posLatestDP := len(mI.Products.Num1441740010.Requests.Total) - 2
-		for i := posLatestDP; i >= 0; i-- {
-			m.Value = (mI.Products.Num1441740010.Requests.Total[i][1]).(float64)
-			if m.Value > 0 {
-				break
-			}
-		}
-		return nil
-	}
-}
-
-func (ca *Analytics) collectorStatusCode(n, d string, args ...string) ([]byte, error) {
-
-	mData, err := ca.AzionClient.Analytics.GetMetricDimensionProdCD(n, d, args...)
+	mData, err := ca.AzionClient.Analytics.GetMetricDimension(n, d, args...)
 	if err != nil {
 		log.Info("Error getting metrics from API. Name ")
 		return nil, err
@@ -233,82 +313,281 @@ func (ca *Analytics) collectorStatusCode(n, d string, args ...string) ([]byte, e
 	return b, nil
 }
 
-func (ca *Analytics) collectorStatusCode5xx() func(m *Metric) error {
+func (ca *Analytics) collectorWrapper(metric, dimension string) func(m *Metric) error {
 	return func(m *Metric) error {
-		var mI mIndexing5xx
-		b, err := ca.collectorStatusCode("status_code", "5xx", "date_from=last-hour")
+
+		b, err := ca.collectorMetric(metric, dimension, "date_from=last-hour")
 		if err != nil {
 			return err
 		}
 
-		// Casting metric payload
-		json.Unmarshal(b, &mI)
-
-		v, err := ca.metricAssertion(mI.Products.Num1441740010.StatusCode.Code)
-		if err != nil {
-			return nil
+		md := metric + "_" + dimension
+		switch md {
+		case "data_transferred_total":
+			{
+				var mI azion.MetricRespDTTotal
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "data_transferred_saved":
+			{
+				var mI azion.MetricRespDTSaved
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "data_transferred_missed":
+			{
+				var mI azion.MetricRespDTMissed
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "bandwidth_total":
+			{
+				var mI azion.MetricRespBWTotal
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "bandwidth_saved":
+			{
+				var mI azion.MetricRespBWSaved
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "bandwidth_missed":
+			{
+				var mI azion.MetricRespBWMissed
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "requests_total":
+			{
+				var mI azion.MetricRespReqTotal
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "requests_missed":
+			{
+				var mI azion.MetricRespReqMissed
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "requests_saved":
+			{
+				var mI azion.MetricRespReqSaved
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_2xx":
+			{
+				var mI azion.MetricRespSCode2xx
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_200":
+			{
+				var mI azion.MetricRespSCode200
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_204":
+			{
+				var mI azion.MetricRespSCode204
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_206":
+			{
+				var mI azion.MetricRespSCode206
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_3xx":
+			{
+				var mI azion.MetricRespSCode3xx
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_301":
+			{
+				var mI azion.MetricRespSCode301
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_302":
+			{
+				var mI azion.MetricRespSCode302
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_304":
+			{
+				var mI azion.MetricRespSCode304
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_4xx":
+			{
+				var mI azion.MetricRespSCode4xx
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_400":
+			{
+				var mI azion.MetricRespSCode400
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_403":
+			{
+				var mI azion.MetricRespSCode403
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_404":
+			{
+				var mI azion.MetricRespSCode404
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_5xx":
+			{
+				var mI azion.MetricRespSCode5xx
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_502":
+			{
+				var mI azion.MetricRespSCode502
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
+		case "status_code_503":
+			{
+				var mI azion.MetricRespSCode503
+				// Casting metric payload
+				json.Unmarshal(b, &mI)
+				v, err := ca.metricAssertion(mI.Products.Prod1441740010.Metric.Dimension)
+				if err != nil {
+					return nil
+				}
+				m.Value = v
+			}
 		}
-		m.Value = v
-		return nil
-	}
-}
-
-func (ca *Analytics) collectorStatusCode500() func(m *Metric) error {
-	return func(m *Metric) error {
-		var mI mIndexing500
-		b, err := ca.collectorStatusCode("status_code", "500", "date_from=last-hour")
-		if err != nil {
-			return err
-		}
-
-		// Casting metric payload
-		json.Unmarshal(b, &mI)
-
-		v, err := ca.metricAssertion(mI.Products.Num1441740010.StatusCode.Code)
-		if err != nil {
-			return nil
-		}
-		m.Value = v
-		return nil
-	}
-}
-
-func (ca *Analytics) collectorStatusCode502() func(m *Metric) error {
-	return func(m *Metric) error {
-		var mI mIndexing502
-		b, err := ca.collectorStatusCode("status_code", "502", "date_from=last-hour")
-		if err != nil {
-			return err
-		}
-
-		// Casting metric payload
-		json.Unmarshal(b, &mI)
-
-		v, err := ca.metricAssertion(mI.Products.Num1441740010.StatusCode.Code)
-		if err != nil {
-			return nil
-		}
-		m.Value = v
-		return nil
-	}
-}
-
-func (ca *Analytics) collectorStatusCode503() func(m *Metric) error {
-	return func(m *Metric) error {
-		var mI mIndexing503
-		b, err := ca.collectorStatusCode("status_code", "503", "date_from=last-hour")
-		if err != nil {
-			return err
-		}
-
-		// Casting metric payload
-		json.Unmarshal(b, &mI)
-
-		v, err := ca.metricAssertion(mI.Products.Num1441740010.StatusCode.Code)
-		if err != nil {
-			return nil
-		}
-		m.Value = v
 		return nil
 	}
 }

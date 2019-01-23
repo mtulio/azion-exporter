@@ -16,7 +16,7 @@ func sampleGetMetadata(c *azion.Client) {
 }
 
 func sampleGetMetricProdCDDimension(c *azion.Client) {
-	metric, err := c.Analytics.GetMetricDimensionProdCD("requests", "total", "date_from=last-hour")
+	metric, err := c.Analytics.GetMetricDimension("requests", "total", "date_from=last-hour")
 	if err != nil {
 		panic(err)
 	}
