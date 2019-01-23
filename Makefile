@@ -55,3 +55,7 @@ tag:
 release:
 	. ./hack/env-build.sh && \
 		goreleaser --rm-dist
+
+release-snap:
+	. ./hack/env-build.sh && \
+		goreleaser --rm-dist --snapshot
