@@ -62,7 +62,7 @@ type clientToken struct {
 	ExpirationDate time.Time
 }
 
-// NewClient returns a new Librato API client bound to the public Librato API.
+// NewClient returns a new Azion API client bound to the public Azion API.
 func NewClient(email, password string) *Client {
 	bu, err := url.Parse(defaultBaseURL)
 	if err != nil {
@@ -72,7 +72,7 @@ func NewClient(email, password string) *Client {
 	return NewClientWithBaseURL(bu, email, password)
 }
 
-// NewClientWithBaseURL returned a new Librato API client with a custom base URL.
+// NewClientWithBaseURL returned a new Azion API client with a custom base URL.
 func NewClientWithBaseURL(baseURL *url.URL, email, password string) *Client {
 	headers := map[string]string{
 		"Content-Type": defaultMediaType,
@@ -285,11 +285,11 @@ type ErrorResponse struct {
 	// HTTP response that caused this error
 	Response *http.Response
 
-	// Error messages produces by Librato API.
+	// Error messages produces by Azion API.
 	Errors ErrorResponseMessages `json:"errors"`
 }
 
-// ErrorResponseMessages contains error messages returned from the Librato API.
+// ErrorResponseMessages contains error messages returned from the Azion API.
 type ErrorResponseMessages struct {
 	Params  map[string]interface{} `json:"params,omitempty"`
 	Request []string               `json:"request,omitempty"`
