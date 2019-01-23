@@ -1,0 +1,6 @@
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+RUN apk add curl
+COPY azion-exporter /azion-exporter
+ENTRYPOINT ["/azion-exporter"]
+CMD [ "-h" ]
