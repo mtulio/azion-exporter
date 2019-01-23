@@ -148,7 +148,7 @@ func (ca *Analytics) InitMetrics(msEnabled ...string) error {
 					}
 				case "cd_data_transferred_saved":
 					{
-						m.fCollector = ca.collectorWrapper("bandwidth", "saved")
+						m.fCollector = ca.collectorWrapper("data_transferred", "saved")
 						m.LabelsValue = []string{"saved"}
 					}
 				case "cd_data_transferred_missed":
