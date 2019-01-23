@@ -63,8 +63,8 @@ func init() {
 	}
 
 	// List of metrics to retrieve
-	// cfg.metricsName = append(cfg.metricsName, "cd_requests_saved")
-	// cfg.metricsName = append(cfg.metricsName, "cd_requests_missed")
+	cfg.metricsName = append(cfg.metricsName, "cd_requests_saved")
+	cfg.metricsName = append(cfg.metricsName, "cd_requests_missed")
 	// cfg.metricsName = append(cfg.metricsName, "cd_bandwidth_saved")
 	// cfg.metricsName = append(cfg.metricsName, "cd_bandwidth_missed")
 	cfg.metricsName = append(cfg.metricsName, "cd_data_transferred_saved")
