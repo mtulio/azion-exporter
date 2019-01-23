@@ -102,7 +102,7 @@ func (a *AnalyticsSvc) getProductID(product string) string {
 // CD: Content Delivery (1441740010)
 //
 
-// GetMetricDimensionProdCD return the metric with dimensions for product Content Delivery
-func (a *AnalyticsSvc) GetMetricDimensionProdCD(metric, dimension string, qArgs ...string) (*MetricResp, error) {
+// GetMetricDimension return the metric with dimensions for product Content Delivery
+func (a *AnalyticsSvc) GetMetricDimension(metric, dimension string, qArgs ...string) (*MetricResp, error) {
 	return a.getMetricDimension(a.getProductID("ContentDelivery"), metric, dimension, qArgs...)
 }
