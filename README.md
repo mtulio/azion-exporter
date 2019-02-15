@@ -16,11 +16,36 @@ The binary will be created on `./bin` dir.
 
 `-azion.email` : Azion's Account Email
 
-`-azion.token` : Azion's Account Password
+`-azion.password` : Azion's Account Password
 
 ### OPTIONAL
 
-None
+`-metrics.filter` : List of metrics sepparated by comma
+
+* Supported metrics are:
+
+    "cd_requests_saved"
+    "cd_requests_missed"
+    "cd_bandwidth_saved"
+    "cd_bandwidth_missed"
+    "cd_data_transferred_saved"
+    "cd_data_transferred_missed"
+    "cd_status_code_2xx"
+    "cd_status_code_200"
+    "cd_status_code_204"
+    "cd_status_code_206"
+    "cd_status_code_3xx"
+    "cd_status_code_301"
+    "cd_status_code_302"
+    "cd_status_code_304"
+    "cd_status_code_4xx"
+    "cd_status_code_400"
+    "cd_status_code_403"
+    "cd_status_code_404"
+    "cd_status_code_5xx"
+    "cd_status_code_500"
+    "cd_status_code_503"
+    "cd_status_code_503"
 
 ## USAGE
 

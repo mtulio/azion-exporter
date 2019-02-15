@@ -302,7 +302,7 @@ func (ca *Analytics) collectorMetric(n, d string, args ...string) ([]byte, error
 
 	mData, err := ca.AzionClient.Analytics.GetMetricDimension(n, d, args...)
 	if err != nil {
-		log.Info("Error getting metrics from API. Name ")
+		log.Info("Error getting metrics from API.")
 		return nil, err
 	}
 	b, err := json.Marshal(mData)
