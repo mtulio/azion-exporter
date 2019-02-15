@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/mtulio/azion-exporter/src/azion"
 	"github.com/mtulio/azion-exporter/src/collector"
@@ -20,13 +21,14 @@ type globalProm struct {
 }
 
 type configParams struct {
-	azionEmail  *string
-	azionPass   *string
-	apiListen   string
-	metricsPath string
-	prom        *globalProm
-	azionClient *azion.Client
-	metricsName []string
+	azionEmail     *string
+	azionPass      *string
+	apiListenAddr  *string
+	apiMetricsPath *string
+	prom           *globalProm
+	azionClient    *azion.Client
+	metricsName    []string
+	metricInterval *int
 }
 
 const (
@@ -35,10 +37,10 @@ const (
 )
 
 var (
-	cfg = configParams{
-		apiListen:   ":9801",
-		metricsPath: "/metrics",
-	}
+	cfg               = configParams{}
+	defAPIListenAddr  = ":9801"
+	defAPIMetricsPath = "/metrics"
+	defMetricInterval = 60
 )
 
 // usage returns the command line usage sample.
@@ -49,8 +51,16 @@ func usage() {
 }
 
 func init() {
+
+	cfg.apiListenAddr = flag.String("web.listen-address", defAPIListenAddr, "Address on which to expose metrics and web interface.")
+	cfg.apiMetricsPath = flag.String("web.telemetry-path", defAPIMetricsPath, "Path under which to expose metrics.")
+
 	cfg.azionEmail = flag.String("azion.email", "", "API email address to get Authorization token")
 	cfg.azionPass = flag.String("azion.password", "", "API password to get Authorization token")
+
+	fMetricsFilter := flag.String("metrics.filter", "", "List of metrics sepparated by comma")
+	cfg.metricInterval = flag.Int("metrics.interval", defMetricInterval, "Interval in seconds to retrieve metrics from API")
+
 	flag.Usage = usage
 	flag.Parse()
 
@@ -62,36 +72,15 @@ func init() {
 		*cfg.azionPass = os.Getenv("AZION_PASSWORD")
 	}
 
-	// List of metrics to retrieve
-	cfg.metricsName = append(cfg.metricsName, "cd_requests_saved")
-	cfg.metricsName = append(cfg.metricsName, "cd_requests_missed")
-	// cfg.metricsName = append(cfg.metricsName, "cd_bandwidth_saved")
-	// cfg.metricsName = append(cfg.metricsName, "cd_bandwidth_missed")
-	cfg.metricsName = append(cfg.metricsName, "cd_data_transferred_saved")
-	cfg.metricsName = append(cfg.metricsName, "cd_data_transferred_missed")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_2xx")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_200")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_204")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_206")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_3xx")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_301")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_302")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_304")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_4xx")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_400")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_403")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_404")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_5xx")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_500")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_503")
-	cfg.metricsName = append(cfg.metricsName, "cd_status_code_503")
+	if len(*fMetricsFilter) > 0 {
+		for _, m := range strings.Split(*fMetricsFilter, ",") {
+			cfg.metricsName = append(cfg.metricsName, m)
+		}
+	}
 
 	cfg.azionClient = azion.NewClient(*cfg.azionEmail, *cfg.azionPass)
 
 	initPromCollector()
-	// Samples
-	// sampleGetMetadata(c)
-	// sampleGetMetricProdCDDimension(c)
 }
 
 // Main Prometheus handler
@@ -114,18 +103,19 @@ func main() {
 
 	// This section will start the HTTP server and expose
 	// any metrics on the /metrics endpoint.
-	http.HandleFunc(cfg.metricsPath, handler)
+	http.HandleFunc(*cfg.apiMetricsPath, handler)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
 			<head><title>"` + exporterDescription + `"</title></head>
 			<body>
-			<h1>"` + exporterDescription + `"</h1>
-			<p><a href="` + cfg.metricsPath + `">Metrics</a></p>
+			<h1>` + exporterDescription + `</h1>
+			<p><br> The metrics is available on the path:
+			<a href="` + *cfg.apiMetricsPath + `">Metrics</a></p>
 			</body>
 			</html>`))
 	})
 
-	log.Info("Beginning to serve on port " + cfg.apiListen)
-	log.Fatal(http.ListenAndServe(cfg.apiListen, nil))
+	log.Info("Beginning to serve on port " + *cfg.apiListenAddr)
+	log.Fatal(http.ListenAndServe(*cfg.apiListenAddr, nil))
 
 }
