@@ -20,7 +20,7 @@ The binary will be created on `./bin` dir.
 
 ### OPTIONAL
 
-`-metrics.filter` : List of metrics sepparated by comma
+`-metrics.filter` : List of metrics separated by comma
 
 * Supported metrics are:
 
@@ -135,7 +135,7 @@ Some issues that we need you help:
 * Writing tests
 * Improving the Documentation
 * Split the API Library to an external repo
-* Improve CLI options to enable metrics dynamicaly
+* Improve CLI options to enable metrics dynamically
 * Open an issue
 > [...]
 
@@ -143,5 +143,5 @@ Contribution guidelines:
 
 * See [License](./LICENSE)
 * Fork me
-* Open an PR with enhancements, bugfixes, etc
-* Request review from collavorators
+* Open a PR with enhancements, bugfixes, etc
+* Request review from collaborators
